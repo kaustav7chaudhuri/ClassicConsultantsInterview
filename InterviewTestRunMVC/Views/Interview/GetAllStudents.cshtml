@@ -122,6 +122,13 @@
             <script>
         $(document).ready(function() {
             $('#exportTableBtnExcel').on('click', function() {
+                  let Norows = $('#studentTable tr');
+
+        if (Norows.length <= 1 || (Norows.length > 1 && Norows.eq(1).find('td').eq(0).text().trim() == "No Record Found"))
+        {
+            alert("No data to export");
+            return;
+        }
                 let csv = [];
                 let rows = $('#studentTable tr');
 
@@ -169,6 +176,13 @@
             });
 
             $('#exportTableBtnPdf').on('click', function() {
+                 let Norows = $('#studentTable tr');
+
+        if (Norows.length <= 1 || (Norows.length > 1 && Norows.eq(1).find('td').eq(0).text().trim() == "No Record Found"))
+        {
+            alert("No data to export");
+            return;
+        }
                 // Clone the table to avoid modifying the visible DOM
                 let tableToExport = $('#studentTable').clone();
 
@@ -227,22 +241,32 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var item in Model)
+                @if (Model is not null && Model.Any())
+                {
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.StudentID</td>
+                            <td>@item.StudentName</td>
+                            <td>@item.RollNumber</td>
+                            <td>@item.Department</td>
+                            <td>@item.CollegeName</td>
+                            <td>@Enum.GetName(typeof(StudentType), item.StudentType)</td>
+                            <td>
+                                <a asp-action="UpdateStudent" asp-controller="Interview" asp-route-id="@item.StudentID" class="btn btn-primary mx-2"><i class="bi bi-pencil-fill"></i>Edit</a>
+                                &nbsp;
+                                <a asp-action="DeleteStudent" asp-controller="Interview" asp-route-id="@item.StudentID" class="btn btn-danger mx-2">Delete</a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
                 {
                     <tr>
-                        <td>@item.StudentID</td>
-                        <td>@item.StudentName</td>
-                        <td>@item.RollNumber</td>
-                        <td>@item.Department</td>
-                        <td>@item.CollegeName</td>
-                        <td>@Enum.GetName(typeof(StudentType), item.StudentType)</td>
-                        <td>
-                            <a asp-action="UpdateStudent" asp-controller="Interview" asp-route-id="@item.StudentID" class="btn btn-primary mx-2"><i class="bi bi-pencil-fill"></i>Edit</a>
-                            &nbsp;
-                            <a asp-action="DeleteStudent" asp-controller="Interview" asp-route-id="@item.StudentID" class="btn btn-danger mx-2">Delete</a>
-                        </td>
+                        <td colspan="7" style="text-align:center">No Record Found</td>                        
                     </tr>
                 }
+
             </tbody>
         </table>
     </div>
