@@ -1,0 +1,250 @@
+﻿@model IEnumerable<Student>
+<script src="f:\testing\interviewtestrun\interviewtestrunmvc\javascript\jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<html>
+    <head>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Apply Inter font to the entire body */
+        }
+        /* Custom styles for rounded corners and shadows */
+        .card {
+            border-radius: 0.5rem; /* rounded-lg */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
+        }
+
+        .btn {
+            border-radius: 0.375rem; /* rounded-md */
+            padding: 0.5rem 1rem;
+            font-weight: 500; /* font-medium */
+            transition: background-color 0.2s ease-in-out;
+        }
+
+        .btn-primary {
+            background-color: #3b82f6; /* blue-500 */
+            color: white;
+        }
+
+            .btn-primary:hover {
+                background-color: #2563eb; /* blue-600 */
+            }
+
+        .btn-success {
+            background-color: #22c55e; /* green-500 */
+            color: white;
+        }
+
+            .btn-success:hover {
+                background-color: #16a34a; /* green-600 */
+            }
+
+        .btn-danger {
+            background-color: #ef4444; /* red-500 */
+            color: white;
+        }
+
+            .btn-danger:hover {
+                background-color: #dc2626; /* red-600 */
+            }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            /* Force fixed column widths, important for alignment */
+            table-layout: fixed;
+        }
+
+            .table th, .table td {
+                padding: 0.75rem;
+                border: 1px solid #e5e7eb; /* gray-200 */
+                text-align: left;
+                /* Ensure long content breaks and doesn't overflow */
+                word-break: break-word; /* Changed from break-all to break-word for better readability */
+                overflow: hidden; /* Hide overflowing content if it still exceeds */
+                text-overflow: ellipsis; /* Add ellipsis for overflowing text */
+            }
+
+            .table thead th {
+                background-color: #f3f4f6; /* gray-100 */
+                font-weight: 600; /* font-semibold */
+                color: #374151; /* gray-700 */
+            }
+
+            .table tbody tr:nth-child(even) {
+                background-color: #f9fafb; /* gray-50 */
+            }
+
+            /* Specific column width adjustments for better alignment and readability */
+            .table th:nth-child(1), .table td:nth-child(1) {
+                width: 5%;
+            }
+            /* ID */
+            .table th:nth-child(2), .table td:nth-child(2) {
+                width: 15%;
+            }
+            /* Student Name */
+            .table th:nth-child(3), .table td:nth-child(3) {
+                width: 19%;
+            }
+            /* Roll Number (reduced by 1%) */
+            .table th:nth-child(4), .table td:nth-child(4) {
+                width: 15%;
+            }
+            /* Department */
+            .table th:nth-child(5), .table td:nth-child(5) {
+                width: 20%;
+            }
+            /* College Name */
+            .table th:nth-child(6), .table td:nth-child(6) {
+                width: 10%;
+            }
+            /* Student Type */
+            .table th:nth-child(7), .table td:nth-child(7) {
+                width: 16%;
+            }
+            /* Action (increased by 1%) */
+
+            /* Adjust padding for buttons within table cells if needed */
+            .table td .btn {
+                padding: 0.375rem 0.75rem; /* Smaller padding for buttons in table cells */
+                font-size: 0.875rem; /* Smaller font size for buttons */
+            }
+    </style>
+
+
+        <h1>Student List</h1>
+    </head>
+
+
+    <body>
+            <script>
+        $(document).ready(function() {
+            $('#exportTableBtnExcel').on('click', function() {
+                let csv = [];
+                let rows = $('#studentTable tr');
+
+                // Get headers, excluding the last column (Action)
+                let headerRow = rows.eq(0).find('th');
+                let headers = [];
+                headerRow.each(function(index) {
+                    if (index < headerRow.length - 1) { // Exclude the last header (Action)
+                        headers.push($(this).text().trim());
+                    }
+                });
+                csv.push(headers.join(','));
+
+                // Get data rows, excluding the last column (Action)
+                rows.slice(1).each(function() { // Skip header row
+                    let rowData = [];
+                    $(this).find('td').each(function(index) {
+                        if (index < $(this).parent().find('td').length - 1) { // Exclude the last column (Action)
+                            let text = $(this).text().trim();
+                            // Handle commas and quotes in data
+                            if (text.includes(',') || text.includes('"')) {
+                                text = '"' + text.replace(/"/g, '""') + '"';
+                            }
+                            rowData.push(text);
+                        }
+                    });
+                    csv.push(rowData.join(','));
+                });
+
+                // Create a Blob and download link
+                let csvString = csv.join('\n');
+                let blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+                let link = document.createElement('a');
+                if (link.download !== undefined) { // Feature detection for download attribute
+                    let url = URL.createObjectURL(blob);
+                    link.setAttribute('href', url);
+                    link.setAttribute('download', 'StudentList.csv');
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                } else {
+                    console.error("Your browser does not support the download attribute. Please right-click and save as.");
+                }
+            });
+
+            $('#exportTableBtnPdf').on('click', function() {
+                // Clone the table to avoid modifying the visible DOM
+                let tableToExport = $('#studentTable').clone();
+
+                // Remove the 'Action' column from the cloned table
+                // Remove the last th from the header
+                tableToExport.find('thead tr th:last-child').remove();
+                // Remove the last td from each body row
+                tableToExport.find('tbody tr').each(function() {
+                    $(this).find('td:last-child').remove();
+                });
+
+                const options = {
+                    margin: 10,
+                    filename: 'StudentList.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, logging: true, dpi: 192, letterRendering: true },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+
+                // Generate PDF from the modified cloned table
+                html2pdf().from(tableToExport[0]).set(options).save();
+            });
+        });
+    </script>
+
+    <div class="max-w-7xl mx-auto bg-white p-8 card">
+        <div class="flex justify-between items-center mb-6">
+            <div class="flex space-x-4">
+                <button class="btn btn-success">
+                    <a asp-action="CreateStudent" asp-controller="Interview" class="flex items-center text-white no-underline">
+                        <i class="bi bi-person-plus mr-2"></i>Create
+                    </a>
+                </button>
+
+                <button id="exportTableBtnExcel" class="btn btn-primary flex items-center">
+                    <i class="bi bi-file-earmark-arrow-down mr-2"></i>Export to Excel
+                </button>
+
+                <button id="exportTableBtnPdf" class="btn btn-primary flex items-center">
+                    <i class="bi bi-file-earmark-arrow-down mr-2"></i>Export to PDF
+                </button>
+            </div>
+        </div>
+
+        <br />
+        <table id="studentTable" class="table table-bordered table-striped card">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Student Name</th>
+                    <th>Roll Number</th>
+                    <th>Department</th>
+                    <th>College Name</th>
+                    <th>Student Type</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.StudentID</td>
+                        <td>@item.StudentName</td>
+                        <td>@item.RollNumber</td>
+                        <td>@item.Department</td>
+                        <td>@item.CollegeName</td>
+                        <td>@Enum.GetName(typeof(StudentType), item.StudentType)</td>
+                        <td>
+                            <a asp-action="UpdateStudent" asp-controller="Interview" asp-route-id="@item.StudentID" class="btn btn-primary mx-2"><i class="bi bi-pencil-fill"></i>Edit</a>
+                            &nbsp;
+                            <a asp-action="DeleteStudent" asp-controller="Interview" asp-route-id="@item.StudentID" class="btn btn-danger mx-2">Delete</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    </body>
+</html>
